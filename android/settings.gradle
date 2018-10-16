@@ -1,0 +1,5 @@
+rootProject.name = 'react_native_ble_test'
+include ':react-native-ble-manager'
+project(':react-native-ble-manager').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-ble-manager/android')
+
+include ':app'
