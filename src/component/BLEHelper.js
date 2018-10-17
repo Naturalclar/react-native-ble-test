@@ -12,7 +12,6 @@ import {
   View,
 } from 'react-native';
 import BleManager from 'react-native-ble-manager';
-import { Buffer } from 'buffer';
 import { 
   BLE_DEVICE_NAME,
   BLE_WEIGHT_CHARACTERISTIC_UUID,
@@ -29,10 +28,11 @@ class BLEHelper extends Component {
   constructor() {
     super();
 
+    // TODO: move state to redux
     this.state = {
       scanning: false,
       peripherals: new Map(),
-      appState: '',
+      weight: '--.-',
     }
 
     this.handleUpdateValueForCharacteristic = this.handleUpdateValueForCharacteristic.bind(this);
@@ -58,7 +58,7 @@ class BLEHelper extends Component {
   }
 
   handleButtonPress() {
-    // Check if Bluetooth is off
+    // TODO: Check if Bluetooth is off
 
     // Start Scan
     this.startScan();
@@ -91,10 +91,27 @@ class BLEHelper extends Component {
     }
   }
 
+  /**
+   * calculateWeight: String
+   * @param {Array<Int>} value 
+   * Converts weight data to kg.
+   */
+  calculateWeight(value) {
+    if(!value) {
+      return '--.-';
+    }
+    const high = (value[2]).toString(16);
+    const low = (value[1]).toString(16);
+    const weightString = `${high}${low}`;
+    const dec = parseInt(weightString, 16);
+    const weight = (dec * 0.005).toFixed(1);
+    return weight;
+  }
+
   handleUpdateValueForCharacteristic(data) {
-    const buffer = Buffer.from(data.value);    //https://github.com/feross/buffer#convert-arraybuffer-to-buffer
-    const sensorData = buffer.toString('base64');
-    console.log('Received data from ' + data.peripheral + ' characteristic ' + data.characteristic, sensorData);
+    const weight = this.calculateWeight(data.value);
+    console.log('Received data from ' + data.peripheral + ' characteristic ' + data.characteristic, weight);
+    this.setState({weight});
   }
 
   connect(id) {
@@ -126,7 +143,8 @@ class BLEHelper extends Component {
   render() {
     const list = Array.from(this.state.peripherals.values());
     const dataSource = ds.cloneWithRows(list);
-
+    const {scanning, weight} = this.state;
+ 
     return (
       <View style={styles.container}>
         <TouchableHighlight
@@ -138,7 +156,7 @@ class BLEHelper extends Component {
           </Text>
         </TouchableHighlight>
         <Text style = {styles.center}>
-            Scan is currently {this.state.scanning? '':'not '}running.
+            Scan is currently {scanning? '':'not '}running.
         </Text>
         <ScrollView style={styles.scroll}>
           {(list.length == 0) &&
@@ -165,6 +183,15 @@ class BLEHelper extends Component {
               )
             }}/>
         </ScrollView>
+        <View style={styles.displayWeight}>
+          <Text style={styles.weightText}>
+            {weight}
+
+          </Text>
+          <Text style={styles.unitText}>
+              kg
+          </Text>
+        </View>
       </View>
     )
   }
@@ -198,6 +225,19 @@ const styles = StyleSheet.create({
   noPeripheral: {
     flex: 1,
     justifyContent: 'center',
+  },
+  displayWeight: {
+    flex: 2,
+    justifyContent: 'center',
+  },
+  weightText: {
+    fontSize: 64,
+    textAlign: 'center',
+  },
+  unitText: { 
+    fontSize: 16,
+    paddingLeft: '40%',
+    textAlign: 'center',
   }
 })
 
