@@ -15,11 +15,15 @@ import BleManager from 'react-native-ble-manager';
 import { 
   BLE_DEVICE_NAME,
   BLE_WEIGHT_CHARACTERISTIC_UUID,
-  BLE_WEIGHT_SERVICE_UUID
+  BLE_WEIGHT_SERVICE_UUID,
+  BLE_UUID_SUFFIX,
+  BLE_SCAN_DURATION,
 } from '../libs/const'
 
 const BleManagerModule = NativeModules.BleManager;
 const bleManagerEmitter = new NativeEventEmitter(BleManagerModule);
+const weight_service = `0000${BLE_WEIGHT_SERVICE_UUID}${BLE_UUID_SUFFIX}`;
+const weight_characteristic = `0000${BLE_WEIGHT_CHARACTERISTIC_UUID}${BLE_UUID_SUFFIX}`;
 
 const ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
 
@@ -29,10 +33,11 @@ class BLEHelper extends Component {
 
     this.state = {
       scanning: false,
-      devices: new Map(),
+      peripherals: new Map(),
       appState: '',
     }
 
+    this.handleUpdateValueForCharacteristic = this.handleUpdateValueForCharacteristic.bind(this);
     this.handleDiscoverPeripheral = this.handleDiscoverPeripheral.bind(this);
     this.handleStopScan = this.handleStopScan.bind(this);
   }
@@ -47,44 +52,74 @@ class BLEHelper extends Component {
       'BleManagerStopScan',
       this.handleStopScan
       );
+    this.handlerUpdate = bleManagerEmitter.addListener(
+      'BleManagerDidUpdateValueForCharacteristic',
+      this.handleUpdateValueForCharacteristic
+      );
+
   }
 
+  handleButtonPress() {
+    // Check if Bluetooth is off
+
+    // Start Scan
+    this.startScan();
+  }
   startScan() {
+    // if Device is not scanning, start scanning
     if (!this.state.scanning) {
       this.setState({devices: new Map()});
-      BleManager.scan([], 20, true)
+      BleManager.scan([BLE_WEIGHT_SERVICE_UUID], BLE_SCAN_DURATION, true)
         .then(() => {
           console.log('Scanning...');
           this.setState({scanning: true});
         })
+      return;
+    }
+    BleManager.stopScan()
+      .then(()=> {
+        this.setState({scanning: false});
+      })
+    return;
+  }
+
+  handleDiscoverPeripheral(peripheral) {
+    let peripherals = this.state.peripherals;
+    const nameRegExp = new RegExp(`^${BLE_DEVICE_NAME}`);
+    if (peripheral.name && peripheral.name.match(nameRegExp)) {
+      console.log(peripheral);
+      peripherals.set(peripheral.id, peripheral);
+      this.setState({peripherals})
     }
   }
 
-  handleDiscoverPeripheral(data) {
-    let devices = this.state.devices;
-    const nameRegExp = new RegExp(`^${BLE_DEVICE_NAME}`);
-    if (data.name && data.name.match(nameRegExp)) {
-      console.log(data);
-      BleManager.connect(data.id)
-        .then(() => {
-          return BleManager.retrieveServices(data.id)
-        })
-        .then((result) => {
-          console.log(result);
-          devices.set(data.id, data);
-          this.setState({devices})
-          return BleManager.startNotification(data.id, BLE_WEIGHT_SERVICE_UUID, BLE_WEIGHT_CHARACTERISTIC_UUID)
-          // Success code
-          console.log('Notification started');
-        })
-        .then((result) => {
-          console.log('Notify Started');
-        })
-        .catch((error) => {
-          // Failure code
-          console.log(error);
-        });
-    }
+  handleUpdateValueForCharacteristic(data) {
+    console.log('Received data from ' + data.peripheral + ' characteristic ' + data.characteristic, data.value);
+  }
+
+  connect(id) {
+    console.log(id);
+    BleManager.connect(id)
+    .then(() => {
+      console.log('connected, retrieving service...');
+      return BleManager.retrieveServices(id)
+    })
+    .then((result) => {
+      console.log('service retrieved, starting action...');
+      console.log(result);
+      return BleManager.read(id, weight_service, weight_characteristic);
+    })
+    .then((readData) => {
+      // Success code
+      console.log('Read: ' + readData);
+
+      const buffer = Buffer.Buffer.from(readData);    //https://github.com/feross/buffer#convert-arraybuffer-to-buffer
+      const sensorData = buffer.readUInt8(1, true);
+    })
+    .catch((error) => {
+      // Failure code
+      console.log(error);
+    });
   }
 
   handleStopScan() {
@@ -93,7 +128,7 @@ class BLEHelper extends Component {
   }
 
   render() {
-    const list = Array.from(this.state.devices.values());
+    const list = Array.from(this.state.peripherals.values());
     const dataSource = ds.cloneWithRows(list);
 
     return (
@@ -123,7 +158,9 @@ class BLEHelper extends Component {
             renderRow={(item) => {
               const color = item.connected ? 'green' : '#fff';
               return (
-                <TouchableHighlight>
+                <TouchableHighlight
+                  onPress={()=>{this.connect(item.id)}}
+                >
                   <View style={[styles.row, {backgroundColor: color}]}>
                     <Text style={{fontSize: 12, textAlign: 'center', color: '#333333', padding: 10}}>{item.name}</Text>
                     <Text style={{fontSize: 8, textAlign: 'center', color: '#333333', padding: 10}}>{item.id}</Text>
