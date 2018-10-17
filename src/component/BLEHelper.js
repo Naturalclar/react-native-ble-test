@@ -12,18 +12,16 @@ import {
   View,
 } from 'react-native';
 import BleManager from 'react-native-ble-manager';
+import { Buffer } from 'buffer';
 import { 
   BLE_DEVICE_NAME,
   BLE_WEIGHT_CHARACTERISTIC_UUID,
   BLE_WEIGHT_SERVICE_UUID,
-  BLE_UUID_SUFFIX,
   BLE_SCAN_DURATION,
-} from '../libs/const'
+} from '../libs/const';
 
 const BleManagerModule = NativeModules.BleManager;
 const bleManagerEmitter = new NativeEventEmitter(BleManagerModule);
-const weight_service = `0000${BLE_WEIGHT_SERVICE_UUID}${BLE_UUID_SUFFIX}`;
-const weight_characteristic = `0000${BLE_WEIGHT_CHARACTERISTIC_UUID}${BLE_UUID_SUFFIX}`;
 
 const ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
 
@@ -69,7 +67,7 @@ class BLEHelper extends Component {
     // if Device is not scanning, start scanning
     if (!this.state.scanning) {
       this.setState({devices: new Map()});
-      BleManager.scan([BLE_WEIGHT_SERVICE_UUID], BLE_SCAN_DURATION, true)
+      BleManager.scan([BLE_WEIGHT_SERVICE_UUID], BLE_SCAN_DURATION, false)
         .then(() => {
           console.log('Scanning...');
           this.setState({scanning: true});
@@ -94,11 +92,12 @@ class BLEHelper extends Component {
   }
 
   handleUpdateValueForCharacteristic(data) {
-    console.log('Received data from ' + data.peripheral + ' characteristic ' + data.characteristic, data.value);
+    const buffer = Buffer.from(data.value);    //https://github.com/feross/buffer#convert-arraybuffer-to-buffer
+    const sensorData = buffer.toString('base64');
+    console.log('Received data from ' + data.peripheral + ' characteristic ' + data.characteristic, sensorData);
   }
 
   connect(id) {
-    console.log(id);
     BleManager.connect(id)
     .then(() => {
       console.log('connected, retrieving service...');
@@ -107,14 +106,11 @@ class BLEHelper extends Component {
     .then((result) => {
       console.log('service retrieved, starting action...');
       console.log(result);
-      return BleManager.read(id, weight_service, weight_characteristic);
+      return BleManager.startNotification(id, BLE_WEIGHT_SERVICE_UUID, BLE_WEIGHT_CHARACTERISTIC_UUID);
     })
-    .then((readData) => {
+    .then(() => {
       // Success code
-      console.log('Read: ' + readData);
-
-      const buffer = Buffer.Buffer.from(readData);    //https://github.com/feross/buffer#convert-arraybuffer-to-buffer
-      const sensorData = buffer.readUInt8(1, true);
+      console.log('Notification Started');
     })
     .catch((error) => {
       // Failure code
