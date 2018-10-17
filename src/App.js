@@ -1,12 +1,6 @@
-import React, { Component } from 'react';
-import { BLEHelper } from './component';
+import React from "react";
+import { BLEHelper } from "./component";
 
-class App extends Component {
-  render() {
-    return (
-      <BLEHelper/>
-    );
-  }
-}
+const App = () => <BLEHelper />;
 
 export default App;
