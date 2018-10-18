@@ -6,6 +6,7 @@ jobs:
       - image: circleci/node:8
     steps:
       - checkout
+
       - restore_cache:
         key: yarn-v1-{{ checksum "yarn.lock" }}-{{ arch }}
 
@@ -25,6 +26,7 @@ jobs:
             - node_modules
       
       - run: yarn lint
+      
       - run: yarn test
   workflows:
     version: 2
