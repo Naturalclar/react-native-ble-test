@@ -1,6 +1,6 @@
 version: 2
 jobs:
-  test:
+  build:
     working_directory: ~/react-native-ble-test
     docker:
       - image: circleci/node:8
@@ -26,10 +26,5 @@ jobs:
             - node_modules
       
       - run: yarn lint
-      
+
       - run: yarn test
-  workflows:
-    version: 2
-    lint-test:
-      jobs:
-        - test
