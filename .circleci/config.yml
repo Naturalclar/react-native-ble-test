@@ -1,6 +1,6 @@
 version: 2
 jobs:
-  node:
+  test:
     working_directory: ~/react-native-ble-test
     docker:
       - image: circleci/node:8
