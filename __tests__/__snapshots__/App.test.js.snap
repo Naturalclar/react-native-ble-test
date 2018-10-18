@@ -1,0 +1,134 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`renderes correctly 1`] = `
+<Component
+  style={
+    Object {
+      "backgroundColor": "#FFF",
+      "flex": 1,
+      "height": undefined,
+      "width": undefined,
+    }
+  }
+>
+  <TouchableHighlight
+    activeOpacity={0.85}
+    delayPressOut={100}
+    onPress={[Function]}
+    style={
+      Object {
+        "backgroundColor": "#54a2ff",
+        "borderRadius": 5,
+        "marginTop": 40,
+        "padding": 10,
+      }
+    }
+    underlayColor="black"
+  >
+    <Text
+      accessible={true}
+      allowFontScaling={true}
+      ellipsizeMode="tail"
+      style={
+        Object {
+          "color": "white",
+          "fontWeight": "bold",
+          "textAlign": "center",
+        }
+      }
+    >
+      Scan
+    </Text>
+  </TouchableHighlight>
+  <Text
+    accessible={true}
+    allowFontScaling={true}
+    ellipsizeMode="tail"
+    style={
+      Object {
+        "textAlign": "center",
+      }
+    }
+  >
+    Scan is currently
+     not 
+    running.
+  </Text>
+  <ScrollView
+    style={
+      Object {
+        "backgroundColor": "#f0f0f0",
+        "flex": 1,
+      }
+    }
+  >
+    <Component
+      style={
+        Object {
+          "flex": 1,
+          "justifyContent": "center",
+        }
+      }
+    >
+      <Text
+        accessible={true}
+        allowFontScaling={true}
+        ellipsizeMode="tail"
+        style={
+          Object {
+            "textAlign": "center",
+          }
+        }
+      >
+        No peripherals
+      </Text>
+    </Component>
+    <ListViewMock
+      dataSource={
+        ListViewDataSource {
+          "items": 0,
+        }
+      }
+      enableEmptySections={true}
+      renderRow={[Function]}
+      renderScrollComponent={[Function]}
+    />
+  </ScrollView>
+  <Component
+    style={
+      Object {
+        "flex": 2,
+        "justifyContent": "center",
+      }
+    }
+  >
+    <Text
+      accessible={true}
+      allowFontScaling={true}
+      ellipsizeMode="tail"
+      style={
+        Object {
+          "fontSize": 64,
+          "textAlign": "center",
+        }
+      }
+    >
+      --.-
+    </Text>
+    <Text
+      accessible={true}
+      allowFontScaling={true}
+      ellipsizeMode="tail"
+      style={
+        Object {
+          "fontSize": 16,
+          "paddingLeft": "40%",
+          "textAlign": "center",
+        }
+      }
+    >
+      kg
+    </Text>
+  </Component>
+</Component>
+`;

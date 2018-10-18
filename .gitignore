@@ -57,6 +57,3 @@ buck-out/
 
 # ios DataStores
 ios/Index/DataStore/**/*
-
-# jest snapshots
-*.js.snap
