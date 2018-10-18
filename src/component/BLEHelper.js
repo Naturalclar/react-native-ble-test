@@ -8,6 +8,7 @@ import {
   NativeEventEmitter,
   NativeModules,
   Platform,
+  PermissionsAndroid,
   ScrollView,
   StyleSheet,
   Text,
@@ -122,16 +123,58 @@ class BLEHelper extends Component {
     })
   }
 
-  handleButtonPress() {
+  requestPermission() {
+    // For Android SDK 26+, you need to ask user for permission to use Bluetooth
+    console.log('---Requesting Permission for Android---')
+    return new Promise((resolve, reject) => {
+      Platform.select({
+        ios: async () => resolve(),
+        android: async () => {
+          const granted = await PermissionsAndroid.request(
+            PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION,
+          )
+          console.log(granted)
+          if (
+            granted !== true &&
+            granted !== PermissionsAndroid.RESULTS.GRANTED
+          ) {
+            reject(new Error('Not enough permissions'))
+          }
+          resolve()
+        },
+      })
+    })
+  }
+
+  async handleButtonPress() {
+    // For Android, check if Permission is granted
+    if (Platform.OS === 'android') {
+      console.log('---Checking Permission for Android Devices---')
+      await PermissionsAndroid.check(
+        PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION,
+      ).then(async granted => {
+        console.log(granted)
+        if (!granted) {
+          await this.requestPermission()
+            .then(() => {
+              console.log('---Permission granted---')
+            })
+            .catch(error => {
+              console.log(error)
+            })
+        }
+      })
+    }
+
     // Check Bluetooth State
+    console.log('---Checking Bluetooth State---')
     this.getBluetoothState().then(result => {
       // if BT is off, ask user to turn BT on
       if (result === 'off') {
-        if (Platform.OS === 'ios') {
-          this.invokeBluetoothIos()
-        } else {
-          this.invokeBluetoothAndroid()
-        }
+        Platform.select({
+          ios: this.invokeBluetoothIos(),
+          android: this.invokeBluetoothAndroid(),
+        })
       } else {
         // if BT is on, start scanning for devices
         this.startScan()
@@ -140,6 +183,9 @@ class BLEHelper extends Component {
   }
 
   invokeBluetoothIos() {
+    if (Platform.OS !== 'ios') {
+      return
+    }
     Alert.alert(
       'Bluetooth Settings',
       'You must turn on bluetooth in order to pair device.',
@@ -148,7 +194,7 @@ class BLEHelper extends Component {
         {
           text: 'Open Settings',
           onPress: async () => {
-            await Linking.openURL('app-Prefs:root=Bluetooth')
+            await Linking.openURL('App-Prefs:root=Bluetooth')
           },
         },
       ],
@@ -156,6 +202,9 @@ class BLEHelper extends Component {
   }
 
   invokeBluetoothAndroid() {
+    if (Platform.OS !== 'android') {
+      return
+    }
     BleManager.enableBluetooth()
       .then(() => {
         // Tell user that Bluetooth is on
