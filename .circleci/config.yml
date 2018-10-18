@@ -26,8 +26,8 @@ jobs:
       
       - run: yarn lint
       - run: yarn test
-workflows:
-  version: 2
-  lint-test:
-    jobs:
-      - test
+  workflows:
+    version: 2
+    lint-test:
+      jobs:
+        - test
