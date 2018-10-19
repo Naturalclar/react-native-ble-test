@@ -123,47 +123,47 @@ class BLEHelper extends Component {
     })
   }
 
-  requestPermission() {
+  async requestPermission() {
     // For Android SDK 26+, you need to ask user for permission to use Bluetooth
     console.log('---Requesting Permission for Android---')
-    return new Promise((resolve, reject) => {
-      Platform.select({
-        ios: async () => resolve(),
-        android: async () => {
-          const granted = await PermissionsAndroid.request(
-            PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION,
-          )
-          console.log(granted)
-          if (
-            granted !== true &&
-            granted !== PermissionsAndroid.RESULTS.GRANTED
-          ) {
-            reject(new Error('Not enough permissions'))
-          }
-          resolve()
-        },
-      })
+    const request = Platform.select({
+      ios: async () => {},
+      android: async () => {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION,
+        )
+        console.log(granted)
+        if (
+          granted !== true &&
+          granted !== PermissionsAndroid.RESULTS.GRANTED
+        ) {
+          throw new Error('Not enough permissions')
+        }
+      },
     })
+    await request()
   }
 
   async handleButtonPress() {
     // For Android, check if Permission is granted
     if (Platform.OS === 'android') {
       console.log('---Checking Permission for Android Devices---')
-      await PermissionsAndroid.check(
+      const permission = await PermissionsAndroid.check(
         PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION,
-      ).then(async granted => {
-        console.log(granted)
-        if (!granted) {
+      )
+      console.log(permission)
+      if (!permission) {
+        try {
           await this.requestPermission()
-            .then(() => {
-              console.log('---Permission granted---')
-            })
-            .catch(error => {
-              console.log(error)
-            })
+        } catch (e) {
+          console.log(e.message)
+          ToastAndroid.show(
+            'Bluetooth is required for scan',
+            ToastAndroid.SHORT,
+          )
+          return
         }
-      })
+      }
     }
 
     // Check Bluetooth State
