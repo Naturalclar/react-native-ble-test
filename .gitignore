@@ -57,3 +57,6 @@ buck-out/
 
 # ios DataStores
 ios/Index/DataStore/**/*
+
+# vscode settings
+.vscode

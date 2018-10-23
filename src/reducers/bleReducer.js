@@ -1,22 +1,65 @@
+// @flow
 import actionTypes from '../actions/types'
 
-const initialState = {
-  scanning: false,
-  peripherals: new Map(),
-  weight: '--.-',
+const {
+  BLE_INIT_MANAGER,
+  BLE_SCAN_START,
+  BLE_SCAN_STOP,
+  BLE_SET_PERIPHERALS,
+  BLE_SET_WEIGHT,
+  BLE_SET_STATE,
+} = actionTypes
+
+type BleState = {
+  started: boolean,
+  scanning: boolean,
+  peripherals: Map,
+  paired: Map,
+  weight: string,
+  on: boolean,
 }
 
-const bleReducer = (state = initialState, action) => {
+const initialState: BleState = {
+  started: false,
+  scanning: false,
+  peripherals: new Map(),
+  paired: new Map(),
+  weight: '--.-',
+  on: false,
+}
+
+const bleReducer = (state: BleState = initialState, action) => {
   switch (action.type) {
-    case actionTypes.BLE_START_SCANNING:
+    case BLE_INIT_MANAGER:
+      return {
+        ...state,
+        started: true,
+      }
+    case BLE_SCAN_START:
       return {
         ...state,
         scanning: true,
+        peripherals: new Map(),
       }
-    case actionTypes.BLE_STOP_SCANNING:
+    case BLE_SCAN_STOP:
       return {
         ...state,
         scanning: false,
+      }
+    case BLE_SET_WEIGHT:
+      return {
+        ...state,
+        weight: action.payload,
+      }
+    case BLE_SET_PERIPHERALS:
+      return {
+        ...state,
+        peripherals: action.payload,
+      }
+    case BLE_SET_STATE:
+      return {
+        ...state,
+        on: action.payload,
       }
     default:
       return state
