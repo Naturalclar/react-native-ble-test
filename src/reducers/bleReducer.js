@@ -19,7 +19,7 @@ type BleState = {
   on: boolean,
 }
 
-const initialState: BleState = {
+export const initialState: BleState = {
   started: false,
   scanning: false,
   peripherals: new Map(),

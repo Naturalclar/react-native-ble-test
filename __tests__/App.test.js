@@ -3,9 +3,9 @@ import 'react-native';
 import React from 'react';
 import { shallow } from 'enzyme';
 import toJson from 'enzyme-to-json';
-import App from '../src/App';
+import App from '../src/app';
 
-it('renderes correctly', () => {
+it('renders correctly', () => {
   const wrapper = shallow(<App />);
   const component = wrapper.dive();
   expect(toJson(component)).toMatchSnapshot();
